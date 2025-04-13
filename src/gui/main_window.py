@@ -1,99 +1,101 @@
-from PySide6.QtWidgets import QMainWindow, QHBoxLayout, QScrollArea, QWidget, QVBoxLayout, QStackedWidget
-from PySide6.QtCore import Qt
-from .tabs import Tab1, Tab2, Tab3, Tab4
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout
 
 from src.gui.styles.main_panel import main
-from src.gui.styles.left_panel import panel
-from src.gui.styles.right_panel import substrate
+
+from src.gui.area.ApplicationManagement.general_ApplicationManagement import TopPanel
+from src.gui.area.SettingsManagement.general_SettingsManagement import SettingsPanel
+from src.gui.area.Сharts.general_Charts import GeneralCharts
+from src.gui.area.Characteristics.general_Table import TableCharacteristics
+
+from src.core.processing.Characteristics.table_action import TableActionHandler
+
+from src.core.updater.generic_updater import generic_updater
+from src.core.updater.headline_updater import Headline_Updater
+from src.core.updater.settings_update import Settings_Updater
+from src.core.updater.range_updater import Range_Updater
+from src.core.updater.table_updater import Table_Updater
+from src.core.updater.charts_updater import Charts_Updater
+from src.core.updater.sdr_control_updater import SDR_Control_Updater
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Fixed Size Interface")
-        
-        # Фиксированные размеры главного окна
-        self.setFixedSize(1200, 600)
+        self.setWindowTitle("Radar Simulator")
         self.setStyleSheet(main)
+        
+        # Установка полноэкранного режима
+        self.showMaximized()
         
         # Главный контейнер
         main_widget = QWidget()
+        main_layout = QVBoxLayout(main_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # Верхняя панель настроек
+        self.top_panel = TopPanel()
+        main_layout.addWidget(self.top_panel)
+
+        # Основная рабочая область
+        workspace = QWidget()
+        workspace_layout = QHBoxLayout(workspace)
+        workspace_layout.setContentsMargins(0, 0, 0, 0)
+        workspace_layout.setSpacing(0)
+
+        workspace_characteristics = QWidget()
+        workspace_characteristics_layout = QVBoxLayout(workspace_characteristics)
+
+        # Нижняя часть с таблицей
+        self.table_handler = TableActionHandler()  
+        self.table_widget = TableCharacteristics(self.table_handler)  
+    
+        # Левая панель настроек
+        self.settings_panel = SettingsPanel(self) 
+        self.settings_panel.setFixedWidth(600)
+        workspace_layout.addWidget(self.settings_panel)
+
+        self.chart_widget = GeneralCharts(self.top_panel.charts_widget)
+        workspace_characteristics_layout.addWidget(self.chart_widget)
+
+        workspace_characteristics_layout.addWidget(self.table_widget)
+
+        workspace_layout.addWidget(workspace_characteristics)
+    
+        main_layout.addWidget(workspace, stretch=1)
         self.setCentralWidget(main_widget)
-        
-        # Горизонтальный layout
-        layout = QHBoxLayout(main_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        
-        # Левая панель (фиксированная ширина)
-        left_panel = QScrollArea()
-        left_panel.setFixedWidth(400)
-        left_panel.setWidgetResizable(True)
-        
-        # Контейнер для вкладок
-        tabs_container = QWidget()
-        tabs_container.setStyleSheet(panel)
-        tabs_layout = QVBoxLayout(tabs_container)
-        tabs_layout.setContentsMargins(0, 0, 0, 0)  
-        tabs_layout.setSpacing(0)                   
-        tabs_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        # Добавление вкладок
-        self.tabs = [Tab1(self), Tab2(self), Tab3(self), Tab4(self)]
-        for tab in self.tabs:
-            tabs_layout.addWidget(tab)
-            tab.setContentsMargins(0, 0, 0, 0)  
-        
-        left_panel.setWidget(tabs_container)
-        
-        # Правая панель (фиксированные размеры)
-        right_panel = QWidget()
-        right_panel.setStyleSheet(substrate)
-        right_panel.setFixedSize(800, 600)
-        
-        # Инициализация контента
-        self.content_stack = QStackedWidget(right_panel)
-        self.content_stack.setGeometry(0, 0, 800, 600)
-        self.load_content_pages()
-        
-        # Добавление панелей в layout
-        layout.addWidget(left_panel)
-        layout.addWidget(right_panel)
 
-        # Текущий активный подтаб
-        self.last_active_subtab = None
-        
-        # Блокировка изменения размеров
-        self.setWindowFlag(Qt.WindowType.MSWindowsFixedSizeDialogHint)
+        self.headline_updater = Headline_Updater(self.settings_panel.headline_widget)
+        self.settigs_updater = Settings_Updater(self.settings_panel.main_widget)
+        self.metric_updater = Range_Updater(self.top_panel.metric_widget)
+        self.table_updater = Table_Updater(self.table_widget)
+        self.charts_updater = Charts_Updater(self.chart_widget)
+        self.sdr_control_updater = SDR_Control_Updater(self.settings_panel.sdr_control_widget, self.settings_panel.sdr_parameters_widget)
 
-    def load_content_pages(self):
-        # Import all subtabs
-        from .tabs._tab1.subtab1 import Sub1Tab1Content
-        from .tabs._tab1.subtab2 import Sub2Tab1Content
-        from .tabs._tab1.subtab3 import Sub3Tab1Content
-        from .tabs._tab2.subtab1 import Sub1Tab2Content
-        from .tabs._tab3.subtab1 import Sub1Tab3Content
-        from .tabs._tab3.subtab2 import Sub2Tab3Content
-        from .tabs._tab4.subtab1 import Sub1Tab4Content
-        
-        # Add all content widgets
-        self.content_stack.addWidget(Sub1Tab1Content())
-        self.content_stack.addWidget(Sub2Tab1Content())
-        self.content_stack.addWidget(Sub3Tab1Content())
-        self.content_stack.addWidget(Sub1Tab2Content())
-        self.content_stack.addWidget(Sub1Tab3Content())
-        self.content_stack.addWidget(Sub2Tab3Content())
-        self.content_stack.addWidget(Sub1Tab4Content())
+        generic_updater.init_handlers(self.headline_updater, self.settigs_updater, self.metric_updater, self.table_updater, self.charts_updater, self.sdr_control_updater)
 
-    def show_content(self, index: int):
-        self.content_stack.setCurrentIndex(index)
+        self.settings_panel.main_handler.set_main_widget(generic_updater)
+        self.settings_panel.headline_handler.set_main_widget(generic_updater)
+        self.settings_panel.file_handler.set_main_action(generic_updater)
+        self.settings_panel.radar_handler.set_main_action(generic_updater)
+        self.top_panel.metric_handler.set_main_widget(generic_updater)
+        self.table_handler.set_main_widget(generic_updater)
+        self.settings_panel.sdr_control_handler.set_main_widget(generic_updater)
+    
+        # Настраиваем соединения
+        self._connect_signals()
 
-    def set_active_subtab(self, new_subtab):
-        # Сбрасываем предыдущий активный подтаб
-        if self.last_active_subtab is not None:
-            self.last_active_subtab.setChecked(False)
-            self.last_active_subtab.setEnabled(True)
+    def _connect_signals(self):
+        # Связь кнопки SDR с вкладкой
+        self.top_panel.device_widget.toggle_sdr_tab.connect(
+            self.settings_panel.toggle_sdr_tab
+        )
         
-        # Устанавливаем новый активный подтаб
-        new_subtab.setChecked(True)
-        new_subtab.setEnabled(False)
-        self.last_active_subtab = new_subtab
+        # Связь кнопок графиков с обновлением charts_panel
+        self.top_panel.charts_widget.buttonClicked.connect(
+            self.chart_widget.right_charts.update_tab
+        )
+
+    def get_table_characteristics(self):
+        return self.table_characteristics
+    
+    

@@ -68,8 +68,7 @@ def intraPulseLinearChirp(fc: float,  # Начальная частота
     spectrum_db = 20 * np.log10(np.abs(spectrum) / np.max(np.abs(spectrum)) + 1e-12)
     ax3.plot(freq / 1e6, spectrum_db, 'darkgreen')
     ax3.set_title('Спектр ЛЧМ сигнала')
-    ax3.set(xlabel='Частота (МГц)', ylabel='Мощность (дБ)',
-           xlim=((fc - B * 1.2) / 1e6, (fc + B * 1.2) / 1e6))
+    ax3.set(xlabel='Частота (МГц)', ylabel='Мощность (дБ)')
     
     for ax in [ax1, ax2, ax3]:
         ax.grid(alpha=0.3)
