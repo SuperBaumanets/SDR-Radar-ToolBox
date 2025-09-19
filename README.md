@@ -1,4 +1,6 @@
-# Проект: Система управления и обработки сигналов для SDR (Software Defined Radio)
+# Система управления и обработки сигналов для SDR (Software Defined Radio)
+
+![](misk/radar_toolbox.jpg)
 
 ## Описание проекта
 
